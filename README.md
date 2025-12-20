@@ -49,6 +49,10 @@ implementation("io.github.saferkit:safer-paths:1.0.0")
 </dependency>
 ```
 
+## Release signing PGP key
+
+The releases are signed with the following PGP key: `B4F2B7D90A20546BDCD20B6A1FC6150AB3C92A76`
+
 ## Modules
 
 ### 🔤 safer-strings
