@@ -1,0 +1,117 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - '*'
+  pull_request:
+    branches:
+      - '**'
+  workflow_dispatch:
+    inputs:
+      matrix_rng_seed:
+        description: RNG Seed
+        required: false
+
+permissions:
+  contents: read
+
+# https://help.github.com/en/actions/automating-your-workflow-with-github-actions/software-installed-on-github-hosted-runners
+# GitHub Actions does not support Docker, PostgreSQL server on Windows, macOS :(
+
+concurrency:
+  # On master/release, we don't want any jobs cancelled so the sha is used to name the group
+  # On PR branches, we cancel the job if new commits are pushed
+  # More info: https://stackoverflow.com/a/68422069/253468
+  group: ${{ (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/release' ) && format('ci-main-{0}', github.sha) || format('ci-main-{0}', github.ref) }}
+  cancel-in-progress: true
+
+jobs:
+  matrix_prep:
+    name: Matrix Preparation
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    env:
+      MATRIX_JOBS: 5
+      GITHUB_PR_NUMBER: ${{ github.event.number }}
+      RNG_SEED: ${{ github.event.inputs.matrix_rng_seed }}
+    steps:
+    - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      with:
+        fetch-depth: 50
+    - id: set-matrix
+      run: |
+        node .github/workflows/matrix.mjs
+
+  build-test:
+    name: '${{ matrix.name }}'
+    runs-on: ${{ matrix.os }}
+    needs: matrix_prep
+    strategy:
+      fail-fast: false
+      matrix: ${{fromJson(needs.matrix_prep.outputs.matrix)}}
+    env:
+      ACTIONS_STEP_DEBUG: true
+      ACTIONS_RUNNER_DEBUG: true
+      TZ: ${{ matrix.tz }}
+    steps:
+    - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      with:
+        fetch-depth: 50
+    - name: Set up Java 21 and ${{ matrix.non_ea_java_version }}, ${{ matrix.java_distribution }}, ${{ runner.arch }}
+      uses: actions/setup-java@c5195efecf7bdfc987ee8bae7a71cb8b11521c00 # v4
+      with:
+        # The latest one will be the default, so we use Java 21 for launching Gradle
+        # oracle-actions/setup-java below requires Java 21, so we must install Java 21 before calling oracle-actions/setup-java
+        java-version: |
+          ${{ matrix.non_ea_java_version }}
+          21
+        distribution: ${{ matrix.java_distribution }}
+        # Architecture is explicit to workaround https://github.com/actions/setup-java/issues/559
+        architecture: ${{ runner.arch == 'ARM64' && 'aarch64' || 'x64' }}
+    - name: Set up Java ${{ matrix.java_version }}, oracle
+      id: setup_ea_java
+      if: ${{ matrix.oracle_java_website != '' }}
+      uses: oracle-actions/setup-java@fff43251af9936a0e6a4d5d0946e14f1680e9b6b # v1.5.0
+      env:
+        # Java 21 is needed for executing oracle-actions/setup-java, so we pass it here
+        JAVA_HOME_21_X64: ${{ env.JAVA_HOME_21_AARCH64 || env.JAVA_HOME_21_X64 }}
+      with:
+        website: ${{ matrix.oracle_java_website }}
+        release: ${{ matrix.java_version }}
+    - name: Set up Java 21 ${{ matrix.java_distribution }} as default
+      # oracle-actions/setup-java above installs EA java by default, so we need to reinstall Java 21 as the default
+      if: ${{ matrix.oracle_java_website != '' }}
+      uses: actions/setup-java@c5195efecf7bdfc987ee8bae7a71cb8b11521c00 # v4
+      with:
+        java-version: 21
+        distribution: ${{ matrix.java_distribution }}
+        # Architecture is explicit to workaround https://github.com/actions/setup-java/issues/559
+        architecture: ${{ runner.arch == 'ARM64' && 'aarch64' || 'x64' }}
+
+    - uses: burrunan/gradle-cache-action@663fbad34e03c8f12b27f4999ac46e3d90f87eca # v3
+      name: Test
+      env:
+        S3_BUILD_CACHE_ACCESS_KEY_ID: ${{ secrets.S3_BUILD_CACHE_ACCESS_KEY_ID }}
+        S3_BUILD_CACHE_SECRET_KEY: ${{ secrets.S3_BUILD_CACHE_SECRET_KEY }}
+        _JAVA_OPTIONS: ${{ matrix.extraJvmArgs }}
+      with:
+        read-only: false
+        job-id: jdk${{ matrix.java_version }}
+        arguments: --scan --no-parallel --no-daemon test ${{ matrix.extraGradleArgs }}
+        properties: |
+          includeTestTags=${{ matrix.includeTestTags }}
+          testExtraJvmArgs=${{ matrix.testExtraJvmArgs }}
+          jdkBuildVersion=21
+          jdkTestVersion=${{ matrix.java_version == 'EA' && steps.setup_ea_java.outputs.version || matrix.java_version }}
+          jdkTestVendor=${{ matrix.java_vendor }}
+          # We provision JDKs with GitHub Actions for caching purposes, so Gradle should rather fail in case JDK is not found
+          org.gradle.java.installations.auto-download=false
+
+    - name: Attach heap dump if any
+      if: ${{ failure() && github.event_name == 'pull_request' }}
+      uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+      with:
+        name: heapdump
+        path: '*/*.hprof'

@@ -1,0 +1,32 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:best-practices"
+  ],
+  "labels": [
+    "dependencies"
+  ],
+  "schedule": [
+    "every 3 weeks on Monday"
+  ],
+  "packageRules": [
+    {
+      "groupName": "com.github.vlsi",
+      "matchPackageNames": [
+        "com.github.vlsi{/,}**"
+      ]
+    },
+    {
+      "groupName": "jmh",
+      "matchPackageNames": [
+        "org.openjdk.jmh{/,}**"
+      ]
+    },
+    {
+      "groupName": "com.gradleup.nmcp",
+      "matchPackageNames": [
+        "com.gradleup.nmcp{/,}**"
+      ]
+    }
+  ]
+}

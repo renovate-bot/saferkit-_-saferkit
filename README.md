@@ -20,11 +20,11 @@ SaferKit provides **tiny, focused libraries** that fix these problems without th
 
 ## Key Principles
 
-✅ **Zero dependencies** - Each module depends only on JDK 8+
-✅ **Secure by default** - Security works out-of-the-box, no configuration required
-✅ **Small and auditable** - Each module <50KB, full source transparency
-✅ **Production ready** - Comprehensive tests, security validation, performance benchmarks
-✅ **No magic** - Explicit, understandable security checks you can verify
+* ✅ **Minimal dependencies** - Each module depends only on JDK 8+ and [org.jspecify:jspecify](https://jspecify.dev/)
+* ✅ **Secure by default** - Security works out-of-the-box, no configuration required
+* ✅ **Small and auditable** - Each module <50KB, full source transparency
+* ✅ **Production ready** - Comprehensive tests, security validation, performance benchmarks
+* ✅ **No magic** - Explicit, understandable security checks you can verify
 
 ## Quick Start
 
@@ -128,20 +128,10 @@ String trimToEmpty(@Nullable CharSequence s);
 @Nullable String trimToNull(@Nullable CharSequence s);
 
 // Safe comparisons
-boolean containsIgnoreCase(@Nullable CharSequence str, @Nullable CharSequence search);
-boolean startsWithIgnoreCase(@Nullable CharSequence str, @Nullable CharSequence prefix);
-boolean endsWithIgnoreCase(@Nullable CharSequence str, @Nullable CharSequence suffix);
-boolean equalsIgnoreCase(@Nullable CharSequence a, @Nullable CharSequence b);
-
-// Length utilities
-int length(@Nullable CharSequence s);  // returns 0 for null
-String truncate(CharSequence s, int maxLength);
-String truncateWithEllipsis(CharSequence s, int maxLength);
-
-// String cleaning
-String removeWhitespace(CharSequence s);
-String normalizeWhitespace(CharSequence s);  // Multiple spaces → single space
-String stripAccents(CharSequence s);         // café → cafe
+boolean containsIgnoreCase(CharSequence str, CharSequence search);
+boolean startsWithIgnoreCase(CharSequence str, CharSequence prefix);
+boolean endsWithIgnoreCase(CharSequence str, CharSequence suffix);
+boolean equalsIgnoreCase(CharSequence a, CharSequence b);
 ```
 
 ### 🛡️ safer-paths
@@ -358,17 +348,7 @@ Security checks are optimized and cached where possible. For path operations, th
 ## Requirements
 
 - Java 8 or higher
-- No other dependencies
-
-## Validation & Testing
-
-Every SaferKit module includes:
-
-- ✅ Comprehensive unit tests (>95% coverage)
-- ✅ Security test suite demonstrating vulnerability prevention
-- ✅ Fuzzing tests for edge cases
-- ✅ Performance benchmarks
-- ✅ Cross-platform testing (Linux, macOS, Windows)
+- [org.jspecify:jspecify](https://jspecify.dev/)
 
 ## Coming Soon
 
@@ -377,23 +357,6 @@ Additional modules in development:
 - **safer-zip** - Zip Slip prevention (CVE-2018-16131)
 - **safer-xml** - XXE prevention (CVE-2018-10237)
 - **safer-io** - Complete stream reading, size limits
-- **safer-jackson** - Deserialization attack prevention
-- **safer-logback** - Log injection prevention, PII masking
-
-## Contributing
-
-We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for:
-- Development setup
-- Coding standards
-- Security review process
-- How to report vulnerabilities
-
-## Support
-
-- 📖 [Documentation](https://saferkit.github.io)
-- 💬 [Discussions](https://github.com/saferkit/saferkit/discussions)
-- 🐛 [Issue Tracker](https://github.com/saferkit/saferkit/issues)
-- 🔒 [Security Advisories](https://github.com/saferkit/saferkit/security)
 
 ## Why Trust SaferKit?
 
@@ -401,7 +364,6 @@ We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for:
 2. **Focused** - Each module does one thing well
 3. **No vendor lock-in** - Zero dependencies, standard JDK APIs
 4. **Community-driven** - Maintained by security-conscious Java developers
-5. **Battle-tested** - Used in production by [TODO: Add early adopters]
 
 ## License
 
