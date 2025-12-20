@@ -52,7 +52,8 @@ tasks.configureEach<JavaCompile> {
             compilerArgs.add("-Xlint:-options")
         }
         compilerArgs.add("-Xlint:deprecation")
-        if (buildParameters.failOnJavacWarning && !name.contains("Test")) {
+        if (buildParameters.failOnJavacWarning && !name.contains("Test") && buildParameters.targetJavaVersion >= 11) {
+            // JSpecify has Target.MODULE which produces a non-skippable warning when targeting Java 8
             compilerArgs.add("-Werror")
         }
     }
