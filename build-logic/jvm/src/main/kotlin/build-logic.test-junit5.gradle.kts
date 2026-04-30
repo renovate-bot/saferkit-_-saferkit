@@ -8,7 +8,7 @@ plugins {
 }
 
 dependencies {
-    testImplementation(platform("org.junit:junit-bom:5.14.1"))
+    testImplementation(platform("org.junit:junit-bom:5.14.4"))
     testImplementation("org.junit.jupiter:junit-jupiter-api")
     testImplementation("org.junit.jupiter:junit-jupiter-params")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
