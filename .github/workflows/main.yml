@@ -37,7 +37,7 @@ jobs:
       GITHUB_PR_NUMBER: ${{ github.event.number }}
       RNG_SEED: ${{ github.event.inputs.matrix_rng_seed }}
     steps:
-    - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+    - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
       with:
         fetch-depth: 50
     - id: set-matrix
@@ -56,7 +56,7 @@ jobs:
       ACTIONS_RUNNER_DEBUG: true
       TZ: ${{ matrix.tz }}
     steps:
-    - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+    - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
       with:
         fetch-depth: 50
     - name: Set up Java 21 and ${{ matrix.non_ea_java_version }}, ${{ matrix.java_distribution }}, ${{ runner.arch }}
